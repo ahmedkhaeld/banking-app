@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: banking
+      POSTGRES_USER: banking_user
+      POSTGRES_PASSWORD: banking_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - banking-net
+
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DB_SOURCE: postgres://banking_user:banking_pass@db:5432/banking?sslmode=disable
+    ports:
+      - "8080:8080"
+    networks:
+      - banking-net
+    env_file:
+      - .env
+    command: ["bash", "/wait-for-it.sh", "db:5432", "--", "./banking-app"]
+
+volumes:
+  postgres_data:
+
+networks:
+  banking-net:
+    driver: bridge 
