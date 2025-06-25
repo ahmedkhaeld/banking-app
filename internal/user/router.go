@@ -11,4 +11,5 @@ func RegisterRoutes(routerGroup *gin.RouterGroup) {
 	routerGroup.POST("", controller.create)
 	routerGroup.DELETE(":id", controller.delete)
 	routerGroup.PATCH(":id", controller.update)
+	routerGroup.POST("/login", controller.login)
 }

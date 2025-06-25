@@ -5,12 +5,25 @@ import (
 	"os"
 
 	"github.com/ahmedkhaeld/banking-app/db"
+	_ "github.com/ahmedkhaeld/banking-app/docs" // Import the generated docs
 	"github.com/ahmedkhaeld/banking-app/internal/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @contact.name               API Support
+// @contact.url                http://www.swagger.io/support
+// @contact.email              support@swagger.io
+// @securityDefinitions.apikey JWT
+// @in                         header
+// @name                       Authorization
+// @BasePath  /api/v1/
+
+// @license.name Apache 2.0
+// @license.url  http://www.apache.org/licenses/LICENSE-2.0.html
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
@@ -48,6 +61,8 @@ func main() {
 
 	userGroup := apiV1.Group("/users")
 	user.RegisterRoutes(userGroup)
+
+	server.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	server.Run(":" + os.Getenv("PORT"))
 }
