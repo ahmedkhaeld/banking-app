@@ -121,6 +121,235 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Updates the balance of a specific account by a given amount",
+                "tags": [
+                    "account"
+                ],
+                "summary": "Update account balance",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Balance update payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/account.UpdateAccountBalanceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/account.model"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/transfer": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Retrieves all transfers for a specific account, filtering by the authenticated user's account",
+                "tags": [
+                    "transfer"
+                ],
+                "summary": "Get all transfers for an account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "{'and': [ {'title': { 'cont':'cul' } } ]}",
+                        "name": "s",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "fields to select eg: name,age",
+                        "name": "fields",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page of pagination",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit of pagination",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "join relations eg: category, parent",
+                        "name": "join",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters eg: name||eq||ad price||gte||200",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters eg: created_at,desc title,asc",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of the account to filter transfers by",
+                        "name": "account_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Direction of transfer: incoming, outgoing, or all (default is all)",
+                        "name": "direction",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/transfer.model"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/transfer/execute": {
+            "post": {
+                "description": "Transfers money from one account to another using a transaction",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transfer"
+                ],
+                "summary": "Execute a money transfer between accounts",
+                "parameters": [
+                    {
+                        "description": "Transfer payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/transfer.CreateTransferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/transfer.CreateTransferResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/transfer/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Retrieves a single transfer by its UUID",
+                "tags": [
+                    "transfer"
+                ],
+                "summary": "Get a transfer by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "uuid of item",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/transfer.model"
+                        }
+                    }
+                }
             }
         },
         "/api/v1/user": {
@@ -320,6 +549,17 @@ const docTemplate = `{
                 }
             }
         },
+        "account.UpdateAccountBalanceRequest": {
+            "type": "object",
+            "required": [
+                "amount"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                }
+            }
+        },
         "account.model": {
             "type": "object",
             "properties": {
@@ -436,22 +676,87 @@ const docTemplate = `{
                 "amount": {
                     "type": "integer"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string"
                 },
-                "fromAccount": {
+                "from_account": {
                     "$ref": "#/definitions/models.Account"
                 },
-                "fromAccountID": {
+                "from_account_id": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "toAccount": {
+                "to_account": {
                     "$ref": "#/definitions/models.Account"
                 },
-                "toAccountID": {
+                "to_account_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "transfer.CreateTransferRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "from_account_id",
+                "to_account_id"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "from_account_id": {
+                    "type": "string"
+                },
+                "to_account_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "transfer.CreateTransferResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "from_account_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "to_account_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "transfer.model": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "from_account": {
+                    "$ref": "#/definitions/models.Account"
+                },
+                "from_account_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "to_account": {
+                    "$ref": "#/definitions/models.Account"
+                },
+                "to_account_id": {
                     "type": "string"
                 }
             }

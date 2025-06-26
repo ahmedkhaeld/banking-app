@@ -7,6 +7,7 @@ import (
 	"github.com/ahmedkhaeld/banking-app/db"
 	_ "github.com/ahmedkhaeld/banking-app/docs" // Import the generated docs
 	"github.com/ahmedkhaeld/banking-app/internal/account"
+	"github.com/ahmedkhaeld/banking-app/internal/transfer"
 	"github.com/ahmedkhaeld/banking-app/internal/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -64,6 +65,10 @@ func main() {
 	// Register account routes with authentication middleware
 	accountGroup := apiV1.Group("/accounts")
 	account.RegisterRoutes(accountGroup)
+
+	// Register transfer routes with authentication middleware
+	transferGroup := apiV1.Group("/transfers")
+	transfer.RegisterRoutes(transferGroup)
 
 	server.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

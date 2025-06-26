@@ -68,6 +68,13 @@ definitions:
           Example: "123e4567-e89b-12d3-a456-426614174001"
         type: string
     type: object
+  account.UpdateAccountBalanceRequest:
+    properties:
+      amount:
+        type: integer
+    required:
+    - amount
+    type: object
   account.model:
     properties:
       balance:
@@ -145,17 +152,60 @@ definitions:
     properties:
       amount:
         type: integer
-      createdAt:
+      created_at:
         type: string
-      fromAccount:
+      from_account:
         $ref: '#/definitions/models.Account'
-      fromAccountID:
+      from_account_id:
         type: string
       id:
         type: string
-      toAccount:
+      to_account:
         $ref: '#/definitions/models.Account'
-      toAccountID:
+      to_account_id:
+        type: string
+    type: object
+  transfer.CreateTransferRequest:
+    properties:
+      amount:
+        type: integer
+      from_account_id:
+        type: string
+      to_account_id:
+        type: string
+    required:
+    - amount
+    - from_account_id
+    - to_account_id
+    type: object
+  transfer.CreateTransferResponse:
+    properties:
+      amount:
+        type: integer
+      created_at:
+        type: string
+      from_account_id:
+        type: string
+      id:
+        type: string
+      to_account_id:
+        type: string
+    type: object
+  transfer.model:
+    properties:
+      amount:
+        type: integer
+      created_at:
+        type: string
+      from_account:
+        $ref: '#/definitions/models.Account'
+      from_account_id:
+        type: string
+      id:
+        type: string
+      to_account:
+        $ref: '#/definitions/models.Account'
+      to_account_id:
         type: string
     type: object
   user.CreateUserRequest:
@@ -323,6 +373,156 @@ paths:
       summary: Get account balance
       tags:
       - account
+    patch:
+      description: Updates the balance of a specific account by a given amount
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Balance update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/account.UpdateAccountBalanceRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/account.model'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - JWT: []
+      summary: Update account balance
+      tags:
+      - account
+  /api/v1/transfer:
+    get:
+      description: Retrieves all transfers for a specific account, filtering by the
+        authenticated user's account
+      parameters:
+      - description: '{''and'': [ {''title'': { ''cont'':''cul'' } } ]}'
+        in: query
+        name: s
+        type: string
+      - description: 'fields to select eg: name,age'
+        in: query
+        name: fields
+        type: string
+      - description: page of pagination
+        in: query
+        name: page
+        type: integer
+      - description: limit of pagination
+        in: query
+        name: limit
+        type: integer
+      - description: 'join relations eg: category, parent'
+        in: query
+        name: join
+        type: string
+      - collectionFormat: csv
+        description: 'filters eg: name||eq||ad price||gte||200'
+        in: query
+        items:
+          type: string
+        name: filter
+        type: array
+      - collectionFormat: csv
+        description: 'filters eg: created_at,desc title,asc'
+        in: query
+        items:
+          type: string
+        name: sort
+        type: array
+      - description: ID of the account to filter transfers by
+        in: query
+        name: account_id
+        required: true
+        type: string
+      - description: 'Direction of transfer: incoming, outgoing, or all (default is
+          all)'
+        in: query
+        name: direction
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/transfer.model'
+            type: array
+      security:
+      - JWT: []
+      summary: Get all transfers for an account
+      tags:
+      - transfer
+  /api/v1/transfer/{id}:
+    get:
+      description: Retrieves a single transfer by its UUID
+      parameters:
+      - description: uuid of item
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transfer.model'
+      security:
+      - JWT: []
+      summary: Get a transfer by ID
+      tags:
+      - transfer
+  /api/v1/transfer/execute:
+    post:
+      consumes:
+      - application/json
+      description: Transfers money from one account to another using a transaction
+      parameters:
+      - description: Transfer payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/transfer.CreateTransferRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/transfer.CreateTransferResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Execute a money transfer between accounts
+      tags:
+      - transfer
   /api/v1/user:
     post:
       parameters:
