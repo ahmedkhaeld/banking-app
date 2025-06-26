@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +41,7 @@ func UserMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		tokenMaker, err := NewJWTMaker(os.Getenv("JWT_SECRET_KEY"))
+		tokenMaker, err := NewJWTMaker()
 		if err != nil {
 			log.Fatalf("Error creating token maker: %v", err)
 		}

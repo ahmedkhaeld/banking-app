@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -13,13 +14,14 @@ type JWTMaker struct {
 	secretkey string
 }
 
-func NewJWTMaker(secretkey string) (*JWTMaker, error) {
-	if len(secretkey) < minSecretKeySize {
-		return nil, fmt.Errorf("invalid key size: %d must be at least %d char", len(secretkey), minSecretKeySize)
+func NewJWTMaker() (*JWTMaker, error) {
+	sk := os.Getenv("JWT_SECRET_KEY")
+	if len(sk) < minSecretKeySize {
+		return nil, fmt.Errorf("invalid key size: %d must be at least %d char", len(sk), minSecretKeySize)
 	}
 
 	return &JWTMaker{
-		secretkey: secretkey,
+		secretkey: sk,
 	}, nil
 }
 

@@ -3,7 +3,6 @@ package user
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/ElegantSoft/go-restful-generator/crud"
@@ -125,7 +124,7 @@ func (c *Controller) login(ctx *gin.Context) {
 		return
 	}
 	// Create JWT token
-	jwtMaker, err := auth.NewJWTMaker(os.Getenv("JWT_SECRET_KEY"))
+	jwtMaker, err := auth.NewJWTMaker()
 	if err != nil {
 		ctx.JSON(500, gin.H{"message": "could not create token maker"})
 		return
