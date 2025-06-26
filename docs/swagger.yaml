@@ -417,8 +417,9 @@ paths:
       - account
   /api/v1/transfer:
     get:
-      description: Retrieves all transfers for a specific account, filtering by the
-        authenticated user's account
+      description: 'Retrieves all transfers (both incoming and outgoing) for a specific
+        account. The account must belong to the authenticated user. You can use the
+        ''direction'' query parameter to filter the results:'
       parameters:
       - description: '{''and'': [ {''title'': { ''cont'':''cul'' } } ]}'
         in: query
@@ -520,6 +521,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - JWT: []
       summary: Execute a money transfer between accounts
       tags:
       - transfer

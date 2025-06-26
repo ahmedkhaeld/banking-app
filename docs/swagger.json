@@ -184,7 +184,7 @@
                         "JWT": []
                     }
                 ],
-                "description": "Retrieves all transfers for a specific account, filtering by the authenticated user's account",
+                "description": "Retrieves all transfers (both incoming and outgoing) for a specific account. The account must belong to the authenticated user. You can use the 'direction' query parameter to filter the results:",
                 "tags": [
                     "transfer"
                 ],
@@ -269,6 +269,11 @@
         },
         "/api/v1/transfer/execute": {
             "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Transfers money from one account to another using a transaction",
                 "consumes": [
                     "application/json"
