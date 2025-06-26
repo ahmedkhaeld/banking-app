@@ -1,6 +1,7 @@
 package account
 
 import (
+	"context"
 	"errors"
 
 	"github.com/ElegantSoft/go-restful-generator/crud"
@@ -74,12 +75,12 @@ func (s *Service) getAccountBalance(accountID, userID string) (*AccountBalanceRe
 	}, nil
 }
 
-func (s *Service) updateBalance(accountID string, amount int64) (*models.Account, error) {
+func (s *Service) updateBalance(ctx context.Context, accountID string, amount int64) (*models.Account, error) {
 	id, err := uuid.Parse(accountID)
 	if err != nil {
 		return nil, errors.New("invalid account_id format")
 	}
-	account, err := s.repo.updateBalance(nil, id.String(), amount)
+	account, err := s.repo.updateBalance(ctx, id.String(), amount)
 	if err != nil {
 		return nil, err
 	}

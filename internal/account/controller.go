@@ -145,7 +145,7 @@ func (c *Controller) updateBalance(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "amount must be positive"})
 		return
 	}
-	account, err := c.service.updateBalance(accountID, req.Amount)
+	account, err := c.service.updateBalance(ctx, accountID, req.Amount)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
