@@ -16,5 +16,5 @@ func RegisterRoutes(routerGroup *gin.RouterGroup) {
 	routerGroup.POST("", auth.UserMiddleware(), controller.create)
 	routerGroup.GET(":id/balance", auth.UserMiddleware(), controller.getAccountBalance)
 	// routerGroup.DELETE(":id", auth.BearerMiddleware(), controller.delete)
-	// routerGroup.PATCH(":id", auth.BearerMiddleware(), controller.update)
+	routerGroup.PATCH(":id/balance", auth.UserMiddleware(), controller.updateBalance)
 }

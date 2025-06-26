@@ -30,7 +30,7 @@ func InitService() *Service {
 	}
 }
 
-func (s *Service) CreateAccount(req CreateAccountRequest, userId string) (*CreateAccountResponse, error) {
+func (s *Service) createAccount(req CreateAccountRequest, userId string) (*CreateAccountResponse, error) {
 	user, err := s.userService.FindOneByID(userId)
 	if err != nil {
 		return nil, errors.New("user does not exist")
@@ -62,7 +62,7 @@ func (s *Service) CreateAccount(req CreateAccountRequest, userId string) (*Creat
 	return resp, nil
 }
 
-func (s *Service) GetAccountBalance(accountID, userID string) (*AccountBalanceResponse, error) {
+func (s *Service) getAccountBalance(accountID, userID string) (*AccountBalanceResponse, error) {
 	var account models.Account
 	if err := s.repo.Repository.DB.Where("id = ? AND user_id = ?", accountID, userID).First(&account).Error; err != nil {
 		return nil, err
@@ -72,4 +72,22 @@ func (s *Service) GetAccountBalance(accountID, userID string) (*AccountBalanceRe
 		Balance:  account.Balance,
 		Currency: account.Currency,
 	}, nil
+}
+
+func (s *Service) updateBalance(accountID string, amount int64) (*models.Account, error) {
+	id, err := uuid.Parse(accountID)
+	if err != nil {
+		return nil, errors.New("invalid account_id format")
+	}
+	account, err := s.repo.updateBalance(nil, id.String(), amount)
+	if err != nil {
+		return nil, err
+	}
+	return account, nil
+}
+
+func (s *Service) isAccountOwnedByUser(accountID, userID string) bool {
+	var account models.Account
+	err := s.repo.Repository.DB.Where("id = ? AND user_id = ?", accountID, userID).First(&account).Error
+	return err == nil
 }

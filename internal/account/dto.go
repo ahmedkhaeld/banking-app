@@ -42,3 +42,9 @@ type AccountBalanceResponse struct {
 	// Currency of the account.
 	Currency string `json:"currency"`
 }
+
+// UpdateAccountBalanceRequest represents the payload for updating balance
+// swagger:model UpdateAccountBalanceRequest
+type UpdateAccountBalanceRequest struct {
+	Amount int64 `json:"amount" binding:"required"`
+}
