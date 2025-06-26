@@ -14,16 +14,11 @@ var (
 	ErrUnexpectedMethod = errors.New("unexpected signing method")
 )
 
-type TokenMaker interface {
-	CreateToken(username string, duration time.Duration) (string, *Payload, error)
-	VerifyToken(token string) (*Payload, error)
-}
-
 type Payload struct {
 	jwt.MapClaims
 }
 
-func NewPayload(username string, duration time.Duration) (*Payload, error) {
+func NewPayload(userId string, duration time.Duration) (*Payload, error) {
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -31,8 +26,8 @@ func NewPayload(username string, duration time.Duration) (*Payload, error) {
 
 	return &Payload{MapClaims: jwt.MapClaims{
 		"iss": tokenID,
-		"sub": username,
-		"aud": username,
+		"sub": userId,
+		"aud": userId,
 		"iat": time.Now().Unix(),
 		"exp": time.Now().Add(duration).Unix(),
 		"nbf": time.Now().Unix(),

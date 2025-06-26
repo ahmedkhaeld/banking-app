@@ -6,10 +6,10 @@ func RegisterRoutes(routerGroup *gin.RouterGroup) {
 	service := InitService()
 	controller := NewController(service)
 
-	routerGroup.GET("", controller.findAll)
+	// routerGroup.GET("",auth.BearerMiddleware(), controller.findAll)
 	routerGroup.GET(":id", controller.findOne)
 	routerGroup.POST("", controller.create)
-	routerGroup.DELETE(":id", controller.delete)
+	// routerGroup.DELETE(":id", controller.delete)
 	routerGroup.PATCH(":id", controller.update)
 	routerGroup.POST("/login", controller.login)
 }

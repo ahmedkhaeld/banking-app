@@ -23,75 +23,107 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/user": {
-            "get": {
+        "/api/v1/account": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "tags": [
-                    "user"
+                    "account"
+                ],
+                "parameters": [
+                    {
+                        "description": "Account creation payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/account.CreateAccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/account.CreateAccountResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/account/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "tags": [
+                    "account"
                 ],
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "{'and': [ {'title': { 'cont':'cul' } } ]}",
-                        "name": "s",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "fields to select eg: name,age",
-                        "name": "fields",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "page of pagination",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "limit of pagination",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "join relations eg: category, parent",
-                        "name": "join",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "filters eg: name||eq||ad price||gte||200",
-                        "name": "filter",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "filters eg: created_at,desc title,asc",
-                        "name": "sort",
-                        "in": "query"
+                        "description": "uuid of item",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/user.model"
+                            "$ref": "#/definitions/account.model"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/account/{id}/balance": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Returns the balance and currency for a specific account",
+                "tags": [
+                    "account"
+                ],
+                "summary": "Get account balance",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/account.AccountBalanceResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     }
                 }
-            },
+            }
+        },
+        "/api/v1/user": {
             "post": {
                 "tags": [
                     "user"
@@ -183,28 +215,6 @@ const docTemplate = `{
                     }
                 }
             },
-            "delete": {
-                "tags": [
-                    "user"
-                ],
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "uuid of item",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
             "patch": {
                 "tags": [
                     "user"
@@ -239,6 +249,213 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "account.AccountBalanceResponse": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "description": "Balance of the account.",
+                    "type": "integer"
+                },
+                "currency": {
+                    "description": "Currency of the account.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the account.",
+                    "type": "string"
+                }
+            }
+        },
+        "account.CreateAccountRequest": {
+            "type": "object",
+            "required": [
+                "currency"
+            ],
+            "properties": {
+                "balance": {
+                    "description": "Initial balance of the account.\nExample: 1000",
+                    "type": "integer"
+                },
+                "currency": {
+                    "description": "Currency of the account. Allowed values: USD, EUR, GBP, JPY, EGP, CAD, AUD.\nRequired: true\nExample: USD",
+                    "type": "string",
+                    "enum": [
+                        "USD",
+                        "EUR",
+                        "GBP",
+                        "JPY",
+                        "EGP",
+                        "CAD",
+                        "AUD"
+                    ]
+                }
+            }
+        },
+        "account.CreateAccountResponse": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "description": "Balance of the account.\nExample: 1000",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "description": "CreatedAt is the timestamp when the account was created.\nExample: \"2023-10-01T12:00:00Z\"",
+                    "type": "string"
+                },
+                "currency": {
+                    "description": "Currency of the account.\nExample: USD",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the created account.\nExample: \"123e4567-e89b-12d3-a456-426614174000\"",
+                    "type": "string"
+                },
+                "owner": {
+                    "description": "Owner of the account.\nExample: \"John Doe\"",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "UserID of the account owner.\nExample: \"123e4567-e89b-12d3-a456-426614174001\"",
+                    "type": "string"
+                }
+            }
+        },
+        "account.model": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "entries": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Entry"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "transfers_from": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Transfer"
+                    }
+                },
+                "transfers_to": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Transfer"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Account": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "entries": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Entry"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "transfers_from": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Transfer"
+                    }
+                },
+                "transfers_to": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Transfer"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Entry": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "$ref": "#/definitions/models.Account"
+                },
+                "accountID": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Transfer": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "fromAccount": {
+                    "$ref": "#/definitions/models.Account"
+                },
+                "fromAccountID": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "toAccount": {
+                    "$ref": "#/definitions/models.Account"
+                },
+                "toAccountID": {
+                    "type": "string"
+                }
+            }
+        },
         "user.CreateUserRequest": {
             "description": "Request payload for creating a new user.",
             "type": "object",

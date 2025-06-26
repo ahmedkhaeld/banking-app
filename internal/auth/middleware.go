@@ -2,7 +2,9 @@ package auth
 
 import (
 	"errors"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +23,7 @@ var (
 )
 
 // BearerMiddleware returns a Gin middleware for Bearer token authentication.
-func BearerMiddleware(tokenMaker TokenMaker) gin.HandlerFunc {
+func UserMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		header := strings.TrimSpace(ctx.GetHeader(authorizationHeaderKey))
 		if header == "" {
@@ -40,6 +42,11 @@ func BearerMiddleware(tokenMaker TokenMaker) gin.HandlerFunc {
 			return
 		}
 
+		tokenMaker, err := NewJWTMaker(os.Getenv("JWT_SECRET_KEY"))
+		if err != nil {
+			log.Fatalf("Error creating token maker: %v", err)
+		}
+
 		accessToken := fields[1]
 		payload, err := tokenMaker.VerifyToken(accessToken)
 		if err != nil {
@@ -48,6 +55,12 @@ func BearerMiddleware(tokenMaker TokenMaker) gin.HandlerFunc {
 		}
 
 		ctx.Set(authorizationPayloadKey, payload)
+
+		// Extract user identifier from payload and set in context
+		if sub, ok := payload.MapClaims["sub"].(string); ok {
+			ctx.Set("user_id", sub)
+		}
+
 		ctx.Next()
 	}
 }

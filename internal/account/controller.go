@@ -1,21 +1,12 @@
-package user
+package account
 
 import (
 	"fmt"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/ElegantSoft/go-restful-generator/crud"
 	"github.com/ahmedkhaeld/banking-app/common"
-	"github.com/ahmedkhaeld/banking-app/internal/auth"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-)
-
-const (
-	//JWT Expire
-	JWTExpire = 24 * 60 * 60 * time.Second // 24 hours
 )
 
 type Controller struct {
@@ -23,7 +14,7 @@ type Controller struct {
 }
 
 // @Success  200  {array}  model
-// @Tags     user
+// @Tags     account
 // @param    s       query  string    false  "{'and': [ {'title': { 'cont':'cul' } } ]}"
 // @param    fields  query  string    false  "fields to select eg: name,age"
 // @param    page    query  int       false  "page of pagination"
@@ -31,7 +22,7 @@ type Controller struct {
 // @param    join    query  string    false  "join relations eg: category, parent"
 // @param    filter  query  []string  false  "filters eg: name||eq||ad price||gte||200"
 // @param    sort    query  []string  false  "filters eg: created_at,desc title,asc"
-// @Router   /api/v1/user [get]
+// @Router   /api/v1/account [get]
 // func (c *Controller) findAll(ctx *gin.Context) {
 // 	var api crud.GetAllRequest
 // 	if api.Limit == 0 {
@@ -64,9 +55,10 @@ type Controller struct {
 // }
 
 // @Success  200  {object}  model
-// @Tags     user
+// @Tags     account
+// @Security JWT
 // @param    id    path  string  true  "uuid of item"
-// @Router   /api/v1/user/{id} [get]
+// @Router   /api/v1/account/{id} [get]
 func (c *Controller) findOne(ctx *gin.Context) {
 	var api crud.GetAllRequest
 	var item common.ById
@@ -91,28 +83,41 @@ func (c *Controller) findOne(ctx *gin.Context) {
 	ctx.JSON(200, result)
 }
 
-// @Success  201  {object}  model
-// @Tags     user
-// @param    {object}  body  CreateUserRequest  true  "item to create"
-// @Router   /api/v1/user [post]
+// @Success  201  {object}  CreateAccountResponse
+// @Tags     account
+// @Security JWT
+// @param    request  body  CreateAccountRequest  true  "Account creation payload"
+// @Router   /api/v1/account [post]
 func (c *Controller) create(ctx *gin.Context) {
-	var req CreateUserRequest
+	var req CreateAccountRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	user, err := c.service.CreateUser(&req)
+
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "user_id not found in context"})
+		return
+	}
+	userIDStr, ok := userID.(string)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "user_id in context is not a string"})
+		return
+	}
+
+	resp, err := c.service.CreateAccount(req, userIDStr)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusCreated, gin.H{"data": user})
+	ctx.JSON(http.StatusCreated, gin.H{"data": resp})
 }
 
 // @Success  200  {string}  string  "ok"
-// @Tags     user
+// @Tags     account
 // @param    id  path  string  true  "uuid of item"
-// @Router   /api/v1/user/{id} [delete]
+// @Router   /api/v1/account/{id} [delete]
 // func (c *Controller) delete(ctx *gin.Context) {
 // 	var item common.ById
 // 	if err := ctx.ShouldBindUri(&item); err != nil {
@@ -134,82 +139,65 @@ func (c *Controller) create(ctx *gin.Context) {
 // }
 
 // @Success  200  {string}  string  "ok"
-// @Tags     user
+// @Tags     account
 // @param    id  path  string  true  "uuid of item"
 // @param    item  body  model   true  "update body"
-// @Router   /api/v1/user/{id} [patch]
-func (c *Controller) update(ctx *gin.Context) {
-	var item model
-	var byId common.ById
-	if err := ctx.ShouldBind(&item); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
-	if err := ctx.ShouldBindUri(&byId); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
-	id, err := uuid.Parse(byId.ID)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
-	if err := ctx.ShouldBindUri(&byId); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
-	err = c.service.Update(&model{ID: id}, &item)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
-	ctx.JSON(http.StatusOK, item)
-}
+// @Router   /api/v1/account/{id} [patch]
+// func (c *Controller) update(ctx *gin.Context) {
+// 	var item model
+// 	var byId common.ById
+// 	if err := ctx.ShouldBind(&item); err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+// 		return
+// 	}
+// 	if err := ctx.ShouldBindUri(&byId); err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+// 		return
+// 	}
+// 	id, err := uuid.Parse(byId.ID)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+// 		return
+// 	}
+// 	if err := ctx.ShouldBindUri(&byId); err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+// 		return
+// 	}
+// 	err = c.service.Update(&model{ID: id}, &item)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+// 		return
+// 	}
+// 	ctx.JSON(http.StatusOK, item)
+// }
 
-// @Summary Login user
-// @Description Authenticate user and return JWT token
-// @Tags user
-// @Accept json
-// @Produce json
-// @Param request body LoginUserRequest true "Login credentials"
-// @Success 200 {object} LoginUserResponse "JWT token and user info"
-// @Failure 400 {object} map[string]string
-// @Router /api/v1/user/login [post]
-func (c *Controller) login(ctx *gin.Context) {
-	var req LoginUserRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"message": err.Error()})
+// GetAccountBalance godoc
+// @Summary  Get account balance
+// @Description  Returns the balance and currency for a specific account
+// @Tags     account
+// @Security JWT
+// @Param    id  path  string  true  "Account ID"
+// @Success  200  {object}  AccountBalanceResponse
+// @Failure  404  {object}  map[string]string
+// @Router   /api/v1/account/{id}/balance [get]
+func (c *Controller) getAccountBalance(ctx *gin.Context) {
+	accountID := ctx.Param("id")
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "user_id not found in context"})
 		return
 	}
-	user, err := c.service.LoginUser(req.Username, req.Password)
+	userIDStr, ok := userID.(string)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "user_id in context is not a string"})
+		return
+	}
+	resp, err := c.service.GetAccountBalance(accountID, userIDStr)
 	if err != nil {
-		ctx.JSON(400, gin.H{"message": err.Error()})
+		ctx.JSON(http.StatusNotFound, gin.H{"message": "account not found or not owned by user"})
 		return
 	}
-	// Create JWT token
-	jwtMaker, err := auth.NewJWTMaker(os.Getenv("JWT_SECRET_KEY"))
-	if err != nil {
-		ctx.JSON(500, gin.H{"message": "could not create token maker"})
-		return
-	}
-	userIDStr := user.ID.String()
-	if userIDStr == "" {
-		ctx.JSON(400, gin.H{"message": "user ID is empty"})
-		return
-	}
-	token, _, err := jwtMaker.CreateToken(userIDStr, JWTExpire)
-	if err != nil {
-		ctx.JSON(500, gin.H{"message": "could not create token"})
-		return
-	}
-	resp := LoginUserResponse{
-		AccessToken: token,
-	}
-	resp.User.ID = user.ID.String()
-	resp.User.Username = user.Username
-	resp.User.FullName = user.FullName
-	resp.User.Email = user.Email
-	ctx.JSON(200, resp)
+	ctx.JSON(http.StatusOK, resp)
 }
 
 func NewController(service *Service) *Controller {

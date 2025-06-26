@@ -6,6 +6,7 @@ import (
 
 	"github.com/ahmedkhaeld/banking-app/db"
 	_ "github.com/ahmedkhaeld/banking-app/docs" // Import the generated docs
+	"github.com/ahmedkhaeld/banking-app/internal/account"
 	"github.com/ahmedkhaeld/banking-app/internal/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -51,8 +52,6 @@ func main() {
 		log.Fatal("Error running migrations: ", err)
 	}
 
-	//TODO: ADD SWAGGER
-
 	server.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "OK"})
 	})
@@ -61,6 +60,10 @@ func main() {
 
 	userGroup := apiV1.Group("/users")
 	user.RegisterRoutes(userGroup)
+
+	// Register account routes with authentication middleware
+	accountGroup := apiV1.Group("/accounts")
+	account.RegisterRoutes(accountGroup)
 
 	server.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

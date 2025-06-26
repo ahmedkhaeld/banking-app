@@ -1,4 +1,163 @@
 definitions:
+  account.AccountBalanceResponse:
+    properties:
+      balance:
+        description: Balance of the account.
+        type: integer
+      currency:
+        description: Currency of the account.
+        type: string
+      id:
+        description: ID of the account.
+        type: string
+    type: object
+  account.CreateAccountRequest:
+    properties:
+      balance:
+        description: |-
+          Initial balance of the account.
+          Example: 1000
+        type: integer
+      currency:
+        description: |-
+          Currency of the account. Allowed values: USD, EUR, GBP, JPY, EGP, CAD, AUD.
+          Required: true
+          Example: USD
+        enum:
+        - USD
+        - EUR
+        - GBP
+        - JPY
+        - EGP
+        - CAD
+        - AUD
+        type: string
+    required:
+    - currency
+    type: object
+  account.CreateAccountResponse:
+    properties:
+      balance:
+        description: |-
+          Balance of the account.
+          Example: 1000
+        type: integer
+      created_at:
+        description: |-
+          CreatedAt is the timestamp when the account was created.
+          Example: "2023-10-01T12:00:00Z"
+        type: string
+      currency:
+        description: |-
+          Currency of the account.
+          Example: USD
+        type: string
+      id:
+        description: |-
+          ID of the created account.
+          Example: "123e4567-e89b-12d3-a456-426614174000"
+        type: string
+      owner:
+        description: |-
+          Owner of the account.
+          Example: "John Doe"
+        type: string
+      user_id:
+        description: |-
+          UserID of the account owner.
+          Example: "123e4567-e89b-12d3-a456-426614174001"
+        type: string
+    type: object
+  account.model:
+    properties:
+      balance:
+        type: integer
+      created_at:
+        type: string
+      currency:
+        type: string
+      entries:
+        description: Relationships
+        items:
+          $ref: '#/definitions/models.Entry'
+        type: array
+      id:
+        type: string
+      owner:
+        type: string
+      transfers_from:
+        items:
+          $ref: '#/definitions/models.Transfer'
+        type: array
+      transfers_to:
+        items:
+          $ref: '#/definitions/models.Transfer'
+        type: array
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.Account:
+    properties:
+      balance:
+        type: integer
+      created_at:
+        type: string
+      currency:
+        type: string
+      entries:
+        description: Relationships
+        items:
+          $ref: '#/definitions/models.Entry'
+        type: array
+      id:
+        type: string
+      owner:
+        type: string
+      transfers_from:
+        items:
+          $ref: '#/definitions/models.Transfer'
+        type: array
+      transfers_to:
+        items:
+          $ref: '#/definitions/models.Transfer'
+        type: array
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.Entry:
+    properties:
+      account:
+        $ref: '#/definitions/models.Account'
+      accountID:
+        type: string
+      amount:
+        type: integer
+      createdAt:
+        type: string
+      id:
+        type: string
+    type: object
+  models.Transfer:
+    properties:
+      amount:
+        type: integer
+      createdAt:
+        type: string
+      fromAccount:
+        $ref: '#/definitions/models.Account'
+      fromAccountID:
+        type: string
+      id:
+        type: string
+      toAccount:
+        $ref: '#/definitions/models.Account'
+      toAccountID:
+        type: string
+    type: object
   user.CreateUserRequest:
     description: Request payload for creating a new user.
     properties:
@@ -104,52 +263,67 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 paths:
-  /api/v1/user:
+  /api/v1/account:
+    post:
+      parameters:
+      - description: Account creation payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/account.CreateAccountRequest'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/account.CreateAccountResponse'
+      security:
+      - JWT: []
+      tags:
+      - account
+  /api/v1/account/{id}:
     get:
       parameters:
-      - description: '{''and'': [ {''title'': { ''cont'':''cul'' } } ]}'
-        in: query
-        name: s
+      - description: uuid of item
+        in: path
+        name: id
+        required: true
         type: string
-      - description: 'fields to select eg: name,age'
-        in: query
-        name: fields
-        type: string
-      - description: page of pagination
-        in: query
-        name: page
-        type: integer
-      - description: limit of pagination
-        in: query
-        name: limit
-        type: integer
-      - description: 'join relations eg: category, parent'
-        in: query
-        name: join
-        type: string
-      - collectionFormat: csv
-        description: 'filters eg: name||eq||ad price||gte||200'
-        in: query
-        items:
-          type: string
-        name: filter
-        type: array
-      - collectionFormat: csv
-        description: 'filters eg: created_at,desc title,asc'
-        in: query
-        items:
-          type: string
-        name: sort
-        type: array
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/user.model'
-            type: array
+            $ref: '#/definitions/account.model'
+      security:
+      - JWT: []
       tags:
-      - user
+      - account
+  /api/v1/account/{id}/balance:
+    get:
+      description: Returns the balance and currency for a specific account
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/account.AccountBalanceResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - JWT: []
+      summary: Get account balance
+      tags:
+      - account
+  /api/v1/user:
     post:
       parameters:
       - description: item to create
@@ -166,20 +340,6 @@ paths:
       tags:
       - user
   /api/v1/user/{id}:
-    delete:
-      parameters:
-      - description: uuid of item
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-      tags:
-      - user
     get:
       parameters:
       - description: uuid of item

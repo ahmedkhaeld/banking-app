@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/ElegantSoft/go-restful-generator/crud"
 	"github.com/ahmedkhaeld/banking-app/db/models"
@@ -80,4 +81,16 @@ func (s *Service) LoginUser(username, password string) (*models.User, error) {
 		return nil, ErrInvalidUsernameOrPassword
 	}
 	return user, nil
+}
+
+func (s *Service) FindOneByID(id string) (*models.User, error) {
+	var user models.User
+	api := crud.GetAllRequest{
+		Filter: []string{fmt.Sprintf("id||eq||%s", id)},
+	}
+	err := s.FindOne(api, &user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }

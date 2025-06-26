@@ -7,14 +7,19 @@ import (
 )
 
 type Account struct {
-	ID            uuid.UUID  `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()"`
-	Owner         string     `gorm:"index;not null"`
-	Balance       int64      `gorm:"not null"`
-	Currency      string     `gorm:"not null"`
-	CreatedAt     time.Time  `gorm:"not null;autoCreateTime"`
-	Entries       []Entry    `gorm:"foreignKey:AccountID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	TransfersFrom []Transfer `gorm:"foreignKey:FromAccountID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	TransfersTo   []Transfer `gorm:"foreignKey:ToAccountID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;primaryKey;default:uuid_generate_v4()"`
+	UserID    uuid.UUID `json:"user_id" gorm:"type:uuid;not null;index"`
+	Balance   int64     `json:"balance" gorm:"type:bigint;default:0"`
+	Owner     string    `json:"owner" gorm:"index;not null"`
+	Currency  string    `json:"currency" gorm:"not null"`
+	CreatedAt time.Time `json:"created_at" gorm:"not null;autoCreateTime"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"not null;autoUpdateTime"`
+	// Relationships
+	Entries       []Entry    `json:"entries,omitempty" gorm:"foreignKey:AccountID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	TransfersFrom []Transfer `json:"transfers_from,omitempty" gorm:"foreignKey:FromAccountID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	TransfersTo   []Transfer `json:"transfers_to,omitempty" gorm:"foreignKey:ToAccountID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
-func (Account) TableName() string { return "accounts" }
+func (Account) TableName() string {
+	return "accounts"
+}
