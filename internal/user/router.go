@@ -1,15 +1,16 @@
 package user
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/ahmedkhaeld/banking-app/internal/auth"
+	"github.com/gin-gonic/gin"
+)
 
 func RegisterRoutes(routerGroup *gin.RouterGroup) {
 	service := InitService()
 	controller := NewController(service)
 
-	// routerGroup.GET("",auth.BearerMiddleware(), controller.findAll)
 	routerGroup.GET(":id", controller.findOne)
 	routerGroup.POST("", controller.create)
-	// routerGroup.DELETE(":id", controller.delete)
-	routerGroup.PATCH(":id", controller.update)
+	routerGroup.PATCH(":id", auth.UserMiddleware(), controller.update)
 	routerGroup.POST("/login", controller.login)
 }

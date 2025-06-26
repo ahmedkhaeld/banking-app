@@ -35,7 +35,7 @@ func InitService() *Service {
 	}
 }
 
-func (s *Service) CreateUser(req *CreateUserRequest) (*models.User, error) {
+func (s *Service) createUser(req *CreateUserRequest) (*models.User, error) {
 	exists, err := s.repo.usernameExists(req.Username)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (s *Service) CreateUser(req *CreateUserRequest) (*models.User, error) {
 	return userModel, nil
 }
 
-func (s *Service) LoginUser(username, password string) (*models.User, error) {
+func (s *Service) loginUser(username, password string) (*models.User, error) {
 	user, err := s.repo.getByUsername(username)
 	if err != nil {
 		return nil, ErrInvalidUsernameOrPassword
